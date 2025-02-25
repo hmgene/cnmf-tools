@@ -38,7 +38,7 @@ async def upload_sparse_chunk(data: SparseCSVChunk):
         tt=pd.DataFrame(data.csv_data)
         H = pd.read_table(f"data/spectra/{data.spectra}", sep="\t", index_col=0,  encoding="latin1");
         
-        json_data = H.iloc[:10, :10].to_json(orient="records")
+        json_data = H.to_json(orient="records")
         return JSONResponse(content={
             "message": f"Chunk {data.chunk_number}/{data.total_chunks} processed successfully for file {data.file_id}",
             "data": json_data

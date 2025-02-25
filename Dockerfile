@@ -1,7 +1,7 @@
 FROM mambaorg/micromamba:1.5.1
 WORKDIR /app
-COPY environment.yml /tmp/environment.yml
-RUN micromamba install -y -n base -f /tmp/environment.yml && \
+COPY . . 
+RUN micromamba install -y -n base -f environment.yml && \
     micromamba clean --all --yes
 SHELL ["micromamba", "run", "-n", "base", "/bin/bash", "-c"]
 COPY . .
