@@ -3,7 +3,6 @@ FROM mambaorg/micromamba
 ENV MAMBA_ROOT_PREFIX=/opt/mamba
 DEBIAN_FRONTEND=noninteractive
 MICROMAMBA_VERSION=0.16.0
-
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -16,10 +15,9 @@ RUN apt-get update && \
     libopencv-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-# Copy environment.yml file
-COPY environment.yml .
+WORKDIR /app
+COPY . /app
 
 # Create and activate the environment
-RUN micromamba create -n myenv -f environment.yml && \
+RUN micromamba create -n myenv -f ./environment.yml && \
     micromamba activate myenv
