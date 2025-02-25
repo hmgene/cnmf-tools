@@ -5,6 +5,6 @@ RUN mkdir /app
 WORKDIR /app
 COPY . . 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-RUN micromamba install -y --file ./env.yml 
+RUN micromamba install -f ./env.yml 
 
 RUN micromamba clean --all --yes
