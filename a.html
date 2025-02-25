@@ -3,52 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Sparse CSV</title>
-    <style>
-        /* Optional: Add some basic styling */
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-
-        #uploadButton {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        #fileInput {
-            display: block;
-            margin: 20px 0;
-        }
-    </style>
+    <title>CSV to JSON Test</title>
+    <script src="src/util.js"></script>
 </head>
 <body>
-
-    <h1>Upload Sparse CSV File</h1>
-
-    <!-- File input for the user to select CSV -->
-    <input type="file" id="fileInput" accept=".csv" />
-    
-    <!-- Button to trigger the upload -->
-    <button id="uploadButton">Upload CSV</button>
-
-    <script src="src/up.js"></script> <!-- Link to your JavaScript file -->
-
+    <pre id="output"></pre> <!-- Fixed closing quote -->
     <script>
-        // Function to trigger the file upload
-        document.getElementById('uploadButton').addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+        const sampleCSV = `id,name,age
+1,John,25
+2,Jane,30
+3,Bob,22`;
 
-            if (file) {
-                uploadSparseCsv(file);  // Call the upload function from up.js
-            } else {
-                alert('Please select a file first!');
-            }
-        });
+        const jsonResult = csv2json(sampleCSV);
+        console.log("JSON Output:", jsonResult);
+
+        const csvResult = json2csv(jsonResult);
+        console.log("CSV Output:\n" + csvResult);
+
+        document.getElementById("output").textContent = csvResult;
     </script>
-
 </body>
 </html>
 
