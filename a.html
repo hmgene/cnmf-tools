@@ -1,26 +1,42 @@
+<!-- uploader.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV to JSON Test</title>
-    <script src="src/util.js"></script>
+    <title>CSV Uploader</title>
 </head>
 <body>
-    <pre id="output"></pre> <!-- Fixed closing quote -->
+    <h2>Upload CSV</h2>
+    <input type="file" id="csvInput" accept=".csv">
+    <p id="status">Waiting for file...</p>
+    <pre id="output"></pre>  <!-- Output area -->
+
+    <script src="/static/utils.js"></script> <!-- Path to your JS file -->
     <script>
-        const sampleCSV = `id,name,age
-1,John,25
-2,Jane,30
-3,Bob,22`;
+        document.getElementById("csvInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        const jsonResult = csv2json(sampleCSV);
-        console.log("JSON Output:", jsonResult);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvString = e.target.result;
 
-        const csvResult = json2csv(jsonResult);
-        console.log("CSV Output:\n" + csvResult);
+                // For example, extract first 200 characters as preview
+                const output = csvString.substring(0, 200);
 
-        document.getElementById("output").textContent = csvResult;
+                // Update the <pre id="output"></pre> element with preview text
+                document.getElementById("output").textContent = output;
+
+                // Send the output content (not the element) to Streamlit using postMessage
+                if (window.parent !== window) {
+                    window.parent.postMessage({ outputData: output }, "*");
+                }
+            };
+
+            document.getElementById("status").textContent = "Processing...";
+            reader.readAsText(file);
+        });
     </script>
 </body>
 </html>
