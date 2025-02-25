@@ -1,31 +1,10 @@
-# Use an official Python image as the base
-FROM python:3.10-slim
-
-# Set the working directory
+FROM mambaorg/micromamba:1.5.1
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install required Python packages
-RUN pip install --no-cache-dir \
-    fastapi \
-    csv \
-    logging \
-    json \
-    pandas \
-    pydantic \
-    numpy \
-    scikit-learn \
-    scanpy \
-    matplotlib
-
-# Copy application files (optional, if needed)
+COPY environment.yml /tmp/environment.yml
+RUN micromamba install -y -n base -f /tmp/environment.yml && \
+    micromamba clean --all --yes
+SHELL ["micromamba", "run", "-n", "base", "/bin/bash", "-c"]
 COPY . .
-
-# Expose FastAPI default port
 EXPOSE 8000
+CMD ["micromamba", "run", "-n", "base", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-# Command to run FastAPI (modify as needed)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
