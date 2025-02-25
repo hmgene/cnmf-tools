@@ -1,4 +1,5 @@
 FROM mambaorg/micromamba:latest
+USER root
 RUN mkdir /home/mambauser/eggnog
 RUN mkdir /app
 WORKDIR /app
