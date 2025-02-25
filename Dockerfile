@@ -1,17 +1,31 @@
-FROM python:3.9-slim
+# Use an official Python image as the base
+FROM python:3.10-slim
 
+# Set the working directory
 WORKDIR /app
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    software-properties-common \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . .
-RUN pip install -r requirements.txt
+# Install required Python packages
+RUN pip install --no-cache-dir \
+    fastapi \
+    csv \
+    logging \
+    json \
+    pandas \
+    pydantic \
+    numpy \
+    scikit-learn \
+    scanpy \
+    matplotlib
 
+# Copy application files (optional, if needed)
+COPY . .
+
+# Expose FastAPI default port
 EXPOSE 8000
-#HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
-ENTRYPOINT ["uvicorn", "app:app","--port=8000","--host=0.0.0.0"]
+
+# Command to run FastAPI (modify as needed)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

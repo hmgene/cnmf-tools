@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from starlette.responses import JSONResponse
-import aiofiles, csv,os, logging, json
+import csv,os, logging, json
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd 
 from pydantic import BaseModel
