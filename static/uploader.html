@@ -105,6 +105,7 @@ function csv2json2serv(file_id, csvString, chunkSize, serverUrl, status_id,spect
     <input type="file" id="csvInput" accept=".csv">
     <pre id="status"></pre>
     <pre id="output"></pre>
+    <div id="outputContainer"></div>
 
     <script>
         const url="http://localhost:8000/";
@@ -139,13 +140,22 @@ function csv2json2serv(file_id, csvString, chunkSize, serverUrl, status_id,spect
                 const csvString = e.target.result;
                 csv2json2serv(file.name, csvString, 500, "http://localhost:8000/upload","status", document.getElementById("spectraList").value)
                     .then(result => {
-                     document.getElementById("output").textContent = json2csv(result);  
-                // const blob = new Blob([json2csv(result)], { type: 'text/csv' });
-                // Create an anchor element for download
-                //const link = document.createElement("a");
-                //link.href = URL.createObjectURL(blob);
-                //link.download = "output.csv"; // You can change the filename here
-                // link.click();
+                 //    document.getElementById("output").textContent = json2csv(result);  
+                 document.getElementById("output").textContent = "done";  
+                const blob = new Blob([json2csv(result)], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const outputElement = document.getElementById("output");
+        let downloadLink = document.getElementById("downloadLink");
+        if (!downloadLink) {
+            downloadLink = document.createElement("a");
+            downloadLink.id = "downloadLink";
+            downloadLink.textContent = " Download CSV";
+            outputElement.appendChild(downloadLink);
+        }
+        downloadLink.href = url;
+        downloadLink.download = "output.csv";
+
+
 
                     })
                     .catch(error => {
