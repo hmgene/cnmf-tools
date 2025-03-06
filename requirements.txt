@@ -1,0 +1,10 @@
+fastapi 
+csv
+logging
+json
+pandas
+pydantic
+numpy
+sklearn
+scanpy
+matplotlib

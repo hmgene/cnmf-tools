@@ -1,54 +1,43 @@
+<!-- uploader.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Sparse CSV</title>
-    <style>
-        /* Optional: Add some basic styling */
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-
-        #uploadButton {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        #fileInput {
-            display: block;
-            margin: 20px 0;
-        }
-    </style>
+    <title>CSV Uploader</title>
 </head>
 <body>
+    <h2>Upload CSV</h2>
+    <input type="file" id="csvInput" accept=".csv">
+    <p id="status">Waiting for file...</p>
+    <pre id="output"></pre>  <!-- Output area -->
 
-    <h1>Upload Sparse CSV File</h1>
-
-    <!-- File input for the user to select CSV -->
-    <input type="file" id="fileInput" accept=".csv" />
-    
-    <!-- Button to trigger the upload -->
-    <button id="uploadButton">Upload CSV</button>
-
-    <script src="src/up.js"></script> <!-- Link to your JavaScript file -->
-
+    <script src="/static/utils.js"></script> <!-- Path to your JS file -->
     <script>
-        // Function to trigger the file upload
-        document.getElementById('uploadButton').addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+        document.getElementById("csvInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-            if (file) {
-                uploadSparseCsv(file);  // Call the upload function from up.js
-            } else {
-                alert('Please select a file first!');
-            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvString = e.target.result;
+
+                // For example, extract first 200 characters as preview
+                const output = csvString.substring(0, 200);
+
+                // Update the <pre id="output"></pre> element with preview text
+                document.getElementById("output").textContent = output;
+
+                // Send the output content (not the element) to Streamlit using postMessage
+                if (window.parent !== window) {
+                    window.parent.postMessage({ outputData: output }, "*");
+                }
+            };
+
+            document.getElementById("status").textContent = "Processing...";
+            reader.readAsText(file);
         });
     </script>
-
 </body>
 </html>
 

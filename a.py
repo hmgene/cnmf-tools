@@ -1,52 +1,77 @@
-from fastapi import FastAPI, UploadFile, File, Form
-from starlette.responses import JSONResponse
-import aiofiles
-import os
-from fastapi.middleware.cors import CORSMiddleware
-import logging, json
-import pandas as pd 
-from pydantic import BaseModel
-import numpy as np
+import streamlit as st
+import json
 
+# Set up the Streamlit app
+st.set_page_config(page_title="CSV Uploader", layout="wide")
+st.title("CSV Uploader with Button")
 
-logging.basicConfig(level=logging.DEBUG)
-app = FastAPI()
+# Create a placeholder to display output
+output_placeholder = st.empty()
 
-# Allow requests from any origin (for development)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Change this to a specific domain in production
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all HTTP methods (POST, GET, etc.)
-    allow_headers=["*"],  # Allows all headers
-)
-class SparseCSVChunk(BaseModel):
-    chunk_number: int
-    total_chunks: int
-    file_id: str
-    csv_data: dict
+# HTML to embed in the Streamlit app
+html_code = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Uploader</title>
+</head>
+<body>
+    <h2>Upload CSV</h2>
+    <input type="file" id="csvInput" accept=".csv">
+    <p id="status">Waiting for file...</p>
+    <pre id="output"></pre>  <!-- Output area -->
 
-@app.post("/upload/")
-async def upload_sparse_chunk(data: SparseCSVChunk):
-    try:
-        logging.info(f"Received chunk {data.chunk_number}/{data.total_chunks} for file {data.file_id}")
-        num_rows = max(map(int, data.csv_data.keys())) + 1  # Convert string keys to int
-        num_cols = max(
-            [max(map(int, cols.keys())) for cols in data.csv_data.values()]
-        ) + 1  # Convert column keys to int
-        sparse_matrix = np.zeros((num_rows, num_cols))
-        for row_idx, cols in data.csv_data.items():
-            for col_idx, value in cols.items():
-                sparse_matrix[int(row_idx), int(col_idx)] = value  # Convert indices to int
-        row_sums = np.sum(sparse_matrix, axis=1)
-        row_sums = np.nan_to_num(row_sums, nan=0.0, posinf=0.0, neginf=0.0) row_sums_sparse = {str(i): row_sum for i, row_sum in enumerate(row_sums) if row_sum != 0}
-        return JSONResponse(content={
-            "message": f"Chunk {data.chunk_number}/{data.total_chunks} processed successfully for file {data.file_id}",
-            "row_sums": row_sums_sparse
-        })
+    <button id="sendButton">Send Data to Streamlit</button>  <!-- Button to trigger send -->
 
-    except Exception as e:
-        logging.error(f"Error processing chunk: {e}")
-        return JSONResponse(content={"error": str(e)}, status_code=400)
+    <script>
+        // Handle file input
+        document.getElementById("csvInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
+            const reader = new FileReader();
+            reader.onload = function(e) {
+
+                // Update the <pre id="output"></pre> element with preview text
+                document.getElementById("output").textContent = "hi";
+                document.getElementById("status").textContent = "File loaded. Ready to send.";
+            };
+
+            document.getElementById("status").textContent = "Processing...";
+            reader.readAsText(file);
+        });
+
+        // Handle button click
+        document.getElementById("sendButton").addEventListener("click", function() {
+            const outputContent = document.getElementById("output").textContent;
+            
+            // Send the content of the output <pre> to Streamlit using postMessage
+            if (window.parent !== window) {
+                window.parent.postMessage({ outputData: outputContent }, "*");
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
+# Display the HTML code in the Streamlit app
+st.components.v1.html(html_code, height=400)
+
+# Listen for messages from JavaScript (via postMessage)
+def listen_for_data():
+    # Streamlit won't directly expose JavaScript variables, so we use `st.experimental_get_query_params()`
+    message = st.experimental_get_query_params()
+    if 'outputData' in message:
+        return message['outputData'][0]  # Capture the `outputData`
+    return None
+
+# Capture the output data (sent via postMessage)
+output_data = listen_for_data()
+
+if output_data:
+    # Display the processed data in Streamlit
+    output_placeholder.text(f"Processed Data:\n{output_data}")
 
