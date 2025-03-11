@@ -1,4 +1,7 @@
 bigdata
+docker_only
+dist
+node_modules
 secrets.toml
 __pycache__
 .DS_Store 

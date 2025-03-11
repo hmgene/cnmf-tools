@@ -1,10 +1,4 @@
-fastapi 
-csv
-logging
-json
+altair
 pandas
-pydantic
-numpy
-sklearn
 scanpy
-matplotlib
+streamlit

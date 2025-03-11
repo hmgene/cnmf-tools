@@ -1,22 +1,18 @@
-<<<<<<< HEAD
-FROM node:18
+FROM python:3.9-slim
+
 WORKDIR /app
+
 COPY . .
-RUN npm install
-CMD ["node", "server.js"]
-=======
-# Use micromamba base image
-FROM mambaorg/micromamba:latest
 
-COPY . /app/ 
-COPY env.yml /app/ 
-WORKDIR /app
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    software-properties-common \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN micromamba env create -f /app/env.yml && micromamba clean --all --yes
+RUN pip3 install -r requirements.txt
 
-RUN echo "micromamba activate cnmf-tools" >> ~/.bashrc
+EXPOSE 8501
 
-EXPOSE 8000
-
-CMD ["micromamba", "run", "-n", "cnmf-tools", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
->>>>>>> refs/remotes/origin/main
+ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
