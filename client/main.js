@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { exec } = require('child_process');
+const { shell } = require("electron"); 
 const path = require('path');
 
 
@@ -12,7 +13,7 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: false,
+      nodeIntegration: true,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     }
@@ -21,7 +22,6 @@ function createWindow() {
   win.loadFile('index.html');
 }
 
-app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -29,8 +29,20 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Listen for Docker commands from the renderer process
-ipcMain.handle('docker-pull', (event, imageName) => {
+ipcMain.handle("check-docker", async () => {
+  return new Promise((resolve) => {
+    exec("docker --version", (error, stdout, stderr) => {
+      if (error || stderr) {
+        resolve("Docker is not installed.");
+      } else {
+        resolve(`Docker is installed: ${stdout.trim()}`);
+      }
+    });
+  });
+});
+
+
+ipcMain.handle("docker-pull", async (event, imageName) => {
   return new Promise((resolve, reject) => {
     exec(`docker pull ${imageName}`, (error, stdout, stderr) => {
       if (error) {
@@ -42,15 +54,55 @@ ipcMain.handle('docker-pull', (event, imageName) => {
   });
 });
 
-ipcMain.handle('docker-run', (event, imageName) => {
+
+ipcMain.handle("docker-run", (event, imageName) => {
   return new Promise((resolve, reject) => {
-    exec(`docker run -d -p 8501:8501 ${imageName}`, (error, stdout, stderr) => {
+    // Check if the container is already running
+    exec(`docker ps --filter "ancestor=${imageName}" --format "{{.Names}}"`, (error, stdout, stderr) => {
       if (error) {
         reject(`Error: ${stderr}`);
+        return;
+      }
+
+      const containerName = stdout.trim();
+
+      if (containerName) {
+        resolve(`Container "${containerName}" is already running.`);
+        shell.openExternal("http://localhost:8501");
       } else {
-        resolve(stdout);
+        exec(`docker run -d -p 8501:8501 ${imageName}`, (error, stdout, stderr) => {
+          if (error) {
+            reject(`Error: ${stderr}`);
+          } else {
+            resolve(`Container started successfully: ${stdout}`);
+            shell.openExternal("http://localhost:8501");
+          }
+        });
       }
     });
+  });
+});
+
+
+
+//ipcMain.handle('docker-run', (event, imageName) => {
+//  return new Promise((resolve, reject) => {
+//    exec(`docker run -d -p 8501:8501 ${imageName}`, (error, stdout, stderr) => {
+//      if (error) {
+//        reject(`Error: ${stderr}`);
+//      } else {
+//        resolve(stdout);
+//        shell.openExternal("http://localhost:8501");
+//      }
+//    });
+//  });
+//});
+//
+app.whenReady().then(() => {
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 

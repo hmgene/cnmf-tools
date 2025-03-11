@@ -7,11 +7,87 @@
 </head>
 <body>
   <h1>Docker Integration</h1>
-  <button id="pullButton">Pull Docker Image</button>
-  <button id="runButton">Run Docker Container</button>
+
+  <!-- Instructions Section -->
+  <div id="osInstructions"></div>
+
+  <!-- Docker Control Buttons -->
+  <button id="pullButton" disabled>Pull Docker Image</button>
+  <button id="runButton" disabled>Run Docker Container</button>
+
   <div id="output"></div>
 
-  <script src="renderer.js"></script>
+  <script>
+    function detectOS() {
+      const os = window.navigator.platform.toLowerCase();
+      const instructionsDiv = document.getElementById("osInstructions");
+
+      // Provide platform-specific instructions
+      if (os.includes("mac")) {
+        instructionsDiv.innerHTML = `
+          <p>You are on macOS. Please make sure Docker Desktop is installed.</p>
+          <p><a href="https://www.docker.com/products/docker-desktop" target="_blank">Download Docker Desktop for macOS</a></p>
+        `;
+      } else if (os.includes("win")) {
+        instructionsDiv.innerHTML = `
+          <p>You are on Windows. Please make sure Docker Desktop is installed.</p>
+          <p><a href="https://www.docker.com/products/docker-desktop" target="_blank">Download Docker Desktop for Windows</a></p>
+        `;
+      } else if (os.includes("linux")) {
+        instructionsDiv.innerHTML = `
+          <p>You are on Linux. Please install Docker Desktop (or Docker Engine) for Linux.</p>
+          <p><a href="https://docs.docker.com/get-docker/" target="_blank">Download Docker for Linux</a></p>
+        `;
+      } else {
+        instructionsDiv.innerHTML = "<p>Operating system not detected. Please ensure Docker Desktop is installed.</p>";
+      }
+    }
+
+    async function checkDockerInstalled() {
+      try {
+        const result = await window.dockerAPI.checkDocker();
+        document.getElementById('osInstructions').innerHTML = ` <p>${result}</p> `;
+        document.getElementById('pullButton').disabled = false;
+        document.getElementById('runButton').disabled = false;
+      } catch (error) {
+        document.getElementById('osInstructions').innerHTML = `
+          <p>Error checking Docker: ${error}</p>
+        `;
+      }
+    }
+
+
+    // Handle the "Pull Docker Image" button
+    document.getElementById('pullButton').addEventListener('click', async () => {
+        const op= document.getElementById('output');
+        op.innerText = "Pulling Docker image .. ";
+      try {
+        const result = await window.dockerAPI.pullImage("twokims/cnmf-tools")
+        op.innerText = `Success: ${result}`;
+      } catch (error) {
+        op.innerText = `Error: ${error}`;
+      }
+      // Call backend to pull Docker image here
+    });
+
+    // Handle the "Run Docker Container" button
+    document.getElementById('runButton').addEventListener('click', () => {
+      document.getElementById('output').innerText = 'Running Docker container...';
+        const op= document.getElementById('output');
+        op.innerText = "Running Docker image .. ";
+      try {
+        const result = window.dockerAPI.runContainer("twokims/cnmf-tools")
+        op.innerText = `Success: ${result}`;
+      } catch (error) {
+        op.innerText = `Error: ${error}`;
+      }
+      // Call backend to run Docker container here
+    });
+window.onload = function () {
+  detectOS();
+  checkDockerInstalled();
+};
+  </script>
 </body>
 </html>
 
