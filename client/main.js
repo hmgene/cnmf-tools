@@ -29,13 +29,32 @@ app.on('window-all-closed', () => {
   }
 });
 
+//ipcMain.handle("check-docker", () => {
+//  return new Promise((resolve) => {
+//    exec("docker --version", (error, stdout, stderr) => {
+//      if (error || stderr) {
+//        resolve("Docker is not installed.");
+//      } else {
+//        resolve(`Docker is installed: ${stdout.trim()}`);
+//      }
+//    });
+//  });
+//});
+
 ipcMain.handle("check-docker", () => {
   return new Promise((resolve) => {
     exec("docker --version", (error, stdout, stderr) => {
       if (error || stderr) {
         resolve("Docker is not installed.");
       } else {
-        resolve(`Docker is installed: ${stdout.trim()}`);
+        // Check if Docker is running
+        exec("docker info", (err, out, errStderr) => {
+          if (err || errStderr) {
+            resolve("Docker is installed but not running.");
+          } else {
+            resolve(`Docker is installed and running: ${stdout.trim()}`);
+          }
+        });
       }
     });
   });
