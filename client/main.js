@@ -29,7 +29,7 @@ app.on('window-all-closed', () => {
   }
 });
 
-ipcMain.handle("check-docker", async () => {
+ipcMain.handle("check-docker", () => {
   return new Promise((resolve) => {
     exec("docker --version", (error, stdout, stderr) => {
       if (error || stderr) {
