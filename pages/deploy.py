@@ -29,7 +29,7 @@ def download_file():
         st.download_button(
             label="Download cNMF Tools (MAC arm64)",
             data=file,
-            file_name="cNMF_Tools-1.0.0-arm64.dmg",
+            file_name="docker_only/cNMF_Tools-1.0.0-arm64.dmg",
             mime="application/x-apple-diskimage"
         )
 

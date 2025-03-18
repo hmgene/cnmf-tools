@@ -7,8 +7,8 @@ rr=[
 "",
 "data/spectra/All_Cells_NMF_Average_Gene_Spectra_nz.txt",
 "data/spectra/Myeloid_NMF_Average_Gene_Spectra.txt",
-"data/spectra/T_Cell_NMF_Average_Gene_Spectra.txt",
-"data/spectra/Malignant_Cell_NMF_Average_Gene_Spectra.txt"
+"data/spectra/T_Cell_NMF_Average_Gene_Spectra_v1.txt",
+"data/spectra/Malignant_Cell_NMF_Average_Gene_Spectra_v1.txt"
 ]
 
 st.title("cNMF Back Calculation")

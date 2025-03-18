@@ -74,12 +74,40 @@ ipcMain.handle("docker-pull", async (event, imageName) => {
 });
 
 
-ipcMain.handle("docker-run", (event, imageName) => {
+//ipcMain.handle("docker-run", async (event, imageName) => {
+//  return new Promise((resolve, reject) => {
+//    // Check if the container is already running
+//    exec(`docker ps --filter "ancestor=${imageName}" --format "{{.Names}}"`, (error, stdout, stderr) => {
+//      if (error) {
+//        reject(`Error: ${stderr}`);
+//        return;
+//      }
+//
+//      const containerName = stdout.trim();
+//
+//      if (containerName) {
+//        resolve(`Container "${containerName}" is already running.`);
+//        shell.openExternal("http://localhost:8501");
+//      } else {
+//        exec(`docker run -d -p 8501:8501 ${imageName}`, (error, stdout, stderr) => {
+//          if (error) {
+//            reject(`Error: ${stderr}`);
+//          } else {
+//            resolve(`Container started successfully: ${stdout}`);
+//            shell.openExternal("http://localhost:8501");
+//          }
+//        });
+//      }
+//    });
+//  });
+//});
+ipcMain.handle("docker-run", async (event, imageName) => {
   return new Promise((resolve, reject) => {
     // Check if the container is already running
     exec(`docker ps --filter "ancestor=${imageName}" --format "{{.Names}}"`, (error, stdout, stderr) => {
       if (error) {
-        reject(`Error: ${stderr}`);
+        console.error("Error checking running containers:", error.message);
+        reject(`Error: ${stderr || error.message}`);
         return;
       }
 
@@ -89,13 +117,23 @@ ipcMain.handle("docker-run", (event, imageName) => {
         resolve(`Container "${containerName}" is already running.`);
         shell.openExternal("http://localhost:8501");
       } else {
-        exec(`docker run -d -p 8501:8501 ${imageName}`, (error, stdout, stderr) => {
-          if (error) {
-            reject(`Error: ${stderr}`);
-          } else {
-            resolve(`Container started successfully: ${stdout}`);
-            shell.openExternal("http://localhost:8501");
+        // Ensure no other process is using port 8501
+        exec("lsof -i :8501", (portError, portStdout) => {
+          if (portStdout) {
+            reject("Error: Port 8501 is already in use. Stop the process or use a different port.");
+            return;
           }
+
+          // Run the Docker container
+          exec(`docker run -d -p 8501:8501 ${imageName}`, (runError, runStdout, runStderr) => {
+            if (runError) {
+              console.error("Error starting container:", runError.message);
+              reject(`Error: ${runStderr || runError.message}`);
+            } else {
+              resolve(`Container started successfully: ${runStdout.trim()}`);
+              shell.openExternal("http://localhost:8501");
+            }
+          });
         });
       }
     });
